@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "PDCARecord": {
+      "title": "PDCA Record",
+      "description": "A record of a quality issue and its PDCA cycle.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique reference ID" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string", "format": "time" },
+        "detectedBy": { "type": "string" },
+        "line": { "type": "string" },
+        "defect": { "type": "string" },
+        "piecesAffected": { "type": "string" },
+        "threshold": { "type": "string" },
+        "containment": { "type": "string" },
+        "whatDefect": { "type": "string" },
+        "operation": { "type": "string" },
+        "startedWhen": { "type": "string" },
+        "dhuBefore": { "type": "number" },
+        "piecesInspected": { "type": "string" },
+        "why1": { "type": "string" },
+        "why2": { "type": "string" },
+        "why3": { "type": "string" },
+        "why4": { "type": "string" },
+        "why5": { "type": "string" },
+        "fishbone": { "type": "string" },
+        "actionPlan": { "type": "string" },
+        "responsible": { "type": "string" },
+        "deadline": { "type": "string" },
+        "targetDHU": { "type": "number" },
+        "successMetric": { "type": "string" },
+        "fixDone": { "type": "string" },
+        "pilotLine": { "type": "string" },
+        "fixBy": { "type": "string" },
+        "retrained": { "type": "string" },
+        "sopUpdated": { "type": "string" },
+        "trial": { "type": "string" },
+        "monitorPeriod": { "type": "string" },
+        "piecesChecked": { "type": "string" },
+        "defectsAfter": { "type": "string" },
+        "dhuAfter": { "type": "number" },
+        "targetMet": { "type": "string" },
+        "supervisorReview": { "type": "string" },
+        "verifyNotes": { "type": "string" },
+        "rollout": { "type": "string" },
+        "rolloutLines": { "type": "string" },
+        "boardUpdated": { "type": "string" },
+        "briefing": { "type": "string" },
+        "finalSOP": { "type": "string" },
+        "closedBy": { "type": "string" },
+        "lessons": { "type": "string" },
+        "feedWeekly": { "type": "string" },
+        "responseTime": { "type": "number" },
+        "status": { "type": "string", "enum": ["Open", "Closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "authorUid": { "type": "string", "description": "UID of the user who created the record" }
+      },
+      "required": ["id", "date", "time", "defect", "line", "status", "authorUid"]
+    }
+  },
+  "firestore": {
+    "/pdca_records/{recordId}": {
+      "schema": "PDCARecord",
+      "description": "Collection of PDCA records."
+    }
+  }
+}

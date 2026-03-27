@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: pdca_records
+    // Document ID: {recordId}
+    // Fields:
+    //   - id: string (required) - Unique reference ID
+    //   - date: string (required) - Date of detection
+    //   - time: string (required) - Time of detection
+    //   - defect: string (required) - Defect description
+    //   - line: string (required) - Production line
+    //   - status: string (required, enum: ["Open", "Closed"])
+    //   - authorUid: string (required) - UID of the creator
+    //   - [Other PDCA fields]: optional strings/numbers
+    //   - createdAt: string (required) - Creation timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorUid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidStatus(status) {
+      return status in ['Open', 'Closed'];
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidPDCARecord(data) {
+      return hasRequiredFields(['id', 'date', 'time', 'defect', 'line', 'status', 'authorUid', 'createdAt']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() < 50 &&
+             data.date is string &&
+             data.time is string &&
+             data.defect is string && (data.status == 'Closed' ? data.defect.size() > 0 : true) && data.defect.size() < 500 &&
+             data.line is string && (data.status == 'Closed' ? data.line.size() > 0 : true) && data.line.size() < 100 &&
+             isValidStatus(data.status) &&
+             data.authorUid == request.auth.uid &&
+             data.createdAt is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /pdca_records/{recordId} {
+      // Users can read all records if authenticated (for dashboard/analytics)
+      // In a real production app, you might scope this by factory/team
+      allow read: if isAuthenticated();
+
+      allow create: if isAuthenticated() && isValidPDCARecord(request.resource.data);
+
+      allow update: if isAuthenticated() && isDocOwner() && isValidPDCARecord(request.resource.data);
+
+      allow delete: if isAuthenticated() && isDocOwner();
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
