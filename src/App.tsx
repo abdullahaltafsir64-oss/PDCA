@@ -133,7 +133,7 @@ const PhaseBadge = ({ phase }: { phase: 'Trigger' | 'Plan' | 'Do' | 'Check' | 'A
 
 // --- Main App ---
 
-function QualityPulseApp() {
+function PDCAFrameWorkApp() {
   const [activePage, setActivePage] = useState<'dashboard' | 'new-pdca' | 'records' | 'analytics'>('dashboard');
   const [records, setRecords] = useState<PDCARecord[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -144,6 +144,8 @@ function QualityPulseApp() {
   const [statusFilter, setStatusFilter] = useState<'All' | 'Open' | 'Closed'>('All');
   const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<Partial<PDCARecord>>({
@@ -211,11 +213,15 @@ function QualityPulseApp() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser && !user && !hasShownWelcome) {
+        setShowWelcomeModal(true);
+        setHasShownWelcome(true);
+      }
       setUser(currentUser);
       setIsAuthReady(true);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user, hasShownWelcome]);
 
   useEffect(() => {
     if (isAuthReady && user) {
@@ -602,7 +608,7 @@ function QualityPulseApp() {
               <LayoutDashboard size={32} />
             </div>
           </div>
-          <h1 className="font-serif text-4xl mb-4 tracking-tight">QualityPulse</h1>
+          <h1 className="font-serif text-4xl mb-4 tracking-tight">PDCAFrameWork</h1>
           <p className="text-gray-400 text-sm mb-10 leading-relaxed">
             PDCA Intelligence System for Garment Manufacturing. 
             Sign in to access the quality command centre.
@@ -665,11 +671,65 @@ function QualityPulseApp() {
         </div>
       )}
 
+      {/* Welcome Modal */}
+      <AnimatePresence>
+        {showWelcomeModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWelcomeModal(false)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              className="relative w-full max-w-lg glass p-10 rounded-[2.5rem] border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden"
+            >
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-red-bright/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+              
+              <div className="relative z-10 text-center">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-red-bright to-red-accent flex items-center justify-center text-white mx-auto mb-8 shadow-xl shadow-red-bright/20 rotate-3">
+                  <Zap size={40} />
+                </div>
+                
+                <h2 className="font-serif text-4xl mb-4 tracking-tight">Welcome to PDCAFrameWork</h2>
+                <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+                  Ready to solve some problems? This platform is designed to help you execute structured PDCA cycles with precision.
+                </p>
+                
+                <div className="flex flex-col gap-4">
+                  <button 
+                    onClick={() => {
+                      setShowWelcomeModal(false);
+                      startNewPDCA();
+                    }}
+                    className="w-full bg-white text-navy font-bold py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl flex items-center justify-center gap-3"
+                  >
+                    <PlusCircle size={20} />
+                    Start New PDCA Cycle
+                  </button>
+                  <button 
+                    onClick={() => setShowWelcomeModal(false)}
+                    className="w-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-bold py-5 rounded-2xl transition-all"
+                  >
+                    Go to Dashboard
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-navy-light border-r border-white/10 flex flex-col">
         <div className="p-6 flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-red-bright shadow-[0_0_12px_rgba(232,83,74,0.8)] animate-pulse" />
-          <h1 className="font-serif text-xl tracking-tight">QualityPulse</h1>
+          <h1 className="font-serif text-xl tracking-tight">PDCAFrameWork</h1>
         </div>
 
         <nav className="flex-1 py-4 overflow-y-auto">
@@ -1942,7 +2002,7 @@ function QualityPulseApp() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <QualityPulseApp />
+      <PDCAFrameWorkApp />
     </ErrorBoundary>
   );
 }
